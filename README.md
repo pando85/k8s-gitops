@@ -2,11 +2,11 @@
 
 
 ```bash
+
 flux install --version=latest \
   --arch=amd64 \
+  --cluster-domain=vagrant.local \
   --export > ./cluster/flux-system/gotk-components.yaml
-
-# Replace cluster.local with your cluster_domain in gotk-components
 
 kubectl create ns flux-system
 
@@ -26,5 +26,11 @@ flux create kustomization flux-system \
   --prune=true \
   --interval=10m
 
+
+flux export source git flux-system \
+  > ./cluster/flux-system/gotk-sync.yaml
+
+flux export kustomization flux-system \
+  >> ./cluster/flux-system/gotk-sync.yaml
 ```
 
