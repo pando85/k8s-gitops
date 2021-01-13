@@ -1,0 +1,95 @@
+---
+apiVersion: v1
+data:
+  message.j2: |
+    {%- set
+      emojis = {
+        'info' : '✅',
+        'error' : '🔴',
+      }
+    -%}
+    {{ emojis[event.severity] }} *{{ event.involvedObject.name }}.{{ event.involvedObject.namespace }}*
+    {{ event.message }}
+
+    {% for k,v in event.metadata.items() -%}
+    *{{ k }}*
+    {{ v }}
+
+    {% endfor -%}
+kind: ConfigMap
+metadata:
+  name: flux-telegram-notification
+  namespace: flux-system
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: flux-telegram-notification
+  name: flux-telegram-notification
+  namespace: flux-system
+spec:
+  ports:
+  - name: flux-telegram-notification
+    port: 8080
+    targetPort: http
+  selector:
+    app: flux-telegram-notification
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flux-telegram-notification
+  namespace: flux-system
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flux-telegram-notification
+  template:
+    metadata:
+      name: flux-telegram-notification
+      labels:
+        app: flux-telegram-notification
+    spec:
+      containers:
+      - name: flux-telegram-notification
+        image: pando85/flux-telegram-notification:0.1.0
+        ports:
+        - name: http
+          containerPort: 8080
+        env:
+          - name: TELEGRAM_BOT_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: telegram-bot
+                key: token
+          - name: TEMPLATE_PATH
+            value: "/etc/forwarder/message.j2"
+        resources:
+          limits:
+            memory: 128M
+          requests:
+            cpu: 100m
+            memory: 40M
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /v1/ping
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /etc/forwarder
+          name: flux-telegram-notification
+      volumes:
+      - name: flux-telegram-notification
+        configMap:
+          name: flux-telegram-notification
+

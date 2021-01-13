@@ -1,0 +1,15 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: telegram-bot
+  namespace: flux-system
+spec:
+  encryptedData:
+    token: AgCUjKKmvR3ag9eXpjEPu2MD//urCjj94S8acbn7oPhW2qskcrwQnoH8cI9CwgGG3XcfgrpApe3Chy5nOr1Qa/XG2QgaYnDbOVh+41fJvlU8oaxXNAAAvnKmU9QSjbFcIH5K+rifCKtNTc9rMseB3KnSnm2w3KryA0msIKyHbnSXLB2CcY3QKdsDNmelWb8kcjoXTiQL97Wtt1iHXiE/Q7C+Xjiiw25/6JlnMBCHXF6wn6AmnPu1Xqq45bUDCDfQQMITStvkRaz54xF+dFKBc8pypD1kR/OnPiuWpND81s60iVrGIFPqsQVYydrxUorzmQ0wRBMmbrs72R+oF0LnBNTjOAcIhlVGVLUrjaOz0wzggnhKIkgeB4ZUFu3NfQfx4/4nsmV9NnynsX/PaXC5sh2YuUgPjabTD4YH2rBCZjHjjmntr0VrNpKUml94yKVvedTD9WR/lQr1n4sHc3wR7g8YaCZI60/flwTf0mN/2l2XVn4ZVI4Ie6RpaxiPEHTKBvOe1kw+qFdId0gr/jGAjRuraSFP6lVwgcyZjmsWFRINLunrChbtanjU6otZTU6KnCO2iroK3Ff8YGu4mnR2vHO4gs/XBWPlyyfjRrZReVcy7W+ynoj5siACBZT7Gocf410ykZ/I7CJG60COpizhkegH7EkGuTD0arvWKbRnVfpNylEriy14bNL5qp8tvRpTOG1HHuVVQY1CtBTLarDS5rNzejP/Pj5Qe16eQiOnSAexJhqP/89TrcPi5rqx480=
+  template:
+    metadata:
+      creationTimestamp: null
+      name: telegram-bot
+      namespace: flux-system
+
