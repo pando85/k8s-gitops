@@ -45,7 +45,7 @@ metadata:
   name: flux-telegram-notification
   namespace: flux-system
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: flux-telegram-notification
