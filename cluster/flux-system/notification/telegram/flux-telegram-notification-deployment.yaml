@@ -85,6 +85,11 @@ spec:
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /v1/ping
+            port: 8080
+            scheme: HTTP
         volumeMounts:
         - mountPath: /etc/forwarder
           name: flux-telegram-notification
@@ -92,4 +97,3 @@ spec:
       - name: flux-telegram-notification
         configMap:
           name: flux-telegram-notification
-
