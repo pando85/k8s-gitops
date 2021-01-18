@@ -57,7 +57,7 @@ spec:
     spec:
       containers:
       - name: flux-telegram-notification
-        image: pando85/flux-telegram-notification:0.1.0
+        image: pando85/flux-telegram-notification:0.2.0
         ports:
         - name: http
           containerPort: 8080
