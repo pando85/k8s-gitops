@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-client-provisioner
+  namespace: nfs-provisioner
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: nfs-client-provisioner
+  template:
+    metadata:
+      labels:
+        app: nfs-client-provisioner
+    spec:
+      serviceAccount: nfs-client-provisioner
+      nodeSelector:
+        kubernetes.io/arch: arm64
+      containers:
+        - name: nfs-client-provisioner
+          image: quay.io/external_storage/nfs-client-provisioner-arm:latest
+          volumeMounts:
+            - name: nfs-client-root
+              mountPath: /persistentvolumes
+          env:
+            - name: PROVISIONER_NAME
+              value: nfs-provisioner/nfs-grigri-datasets
+            - name: NFS_SERVER
+              value: grigri.grigri
+            - name: NFS_PATH
+              value: /datasets/kubernetes
+          resources:
+            limits:
+              cpu: 400m
+              memory: 64M
+            requests:
+              cpu: 10m
+              memory: 64M
+      volumes:
+        - name: nfs-client-root
+          nfs:
+            server: grigri.grigri
+            path: /datasets/kubernetes
