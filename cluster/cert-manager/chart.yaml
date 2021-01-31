@@ -1,0 +1,54 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: cert-manager
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: cert-manager
+      sourceRef:
+        kind: HelmRepository
+        name: jetstack
+      version: 1.1.0
+  interval: 1m
+  releaseName: cert-manager
+  targetNamespace: cert-manager
+  values:
+    installCRDs: true
+
+    extraArgs:
+    # Use this flag to set a namespace that cert-manager will use to store
+    # supporting resources required for each ClusterIssuer (default is kube-system)
+    - --cluster-resource-namespace=cert-manager
+    # When this flag is enabled, secrets will be automatically removed when the certificate resource is deleted
+    - --enable-certificate-owner-ref=true
+
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+
+    prometheus:
+      enabled: false
+      servicemonitor:
+        enabled: false
+        prometheusInstance: default
+        targetPort: 9402
+        path: /metrics
+        interval: 60s
+        scrapeTimeout: 30s
+        labels: {}
+
+    webhook:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+
+    cainjector:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
