@@ -186,12 +186,12 @@ spec:
 
         ruleSelector:
           matchLabels:
-            role: alert-rules
-            prometheus: k8s
+            app: kube-prometheus-stack
+            release: kube-prometheus-stack
 
         serviceMonitorSelector:
           matchLabels:
-            prometheus: k8s
+            release: kube-prometheus-stack
 
     # smart disk data metrics
     prometheus-node-exporter:

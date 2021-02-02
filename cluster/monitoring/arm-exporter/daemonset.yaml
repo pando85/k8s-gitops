@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: arm-exporter
+  namespace: monitoring
+  labels:
+    app: arm-exporter
+spec:
+  selector:
+    matchLabels:
+      app: arm-exporter
+  template:
+    metadata:
+      name: arm-exporter
+      labels:
+        app: arm-exporter
+    spec:
+      containers:
+      - image: carlosedp/arm_exporter
+        name: arm-exporter
+        ports:
+        - name: http
+          containerPort: 9243
+          hostPort: 9243
+      nodeSelector:
+        kubernetes.io/arch: arm64
+
