@@ -43,10 +43,9 @@ kind: Ingress
 metadata:
   name: web-ingress
   namespace: default
-  annotations:
-    # use the shared nginx-ingress
-    kubernetes.io/ingress.class: "nginx-internal"
 spec:
+  # use the shared nginx-ingress
+  ingressClassName: nginx-internal
   rules:
   - host: foo.bar
     http:
