@@ -1,0 +1,207 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+      version: 13.4.1
+  interval: 1m
+  releaseName: kube-prometheus-stack
+  targetNamespace: monitoring
+  values:
+    alertmanager:
+      config:
+        global:
+          resolve_timeout: 5m
+        route:
+          group_by:
+          - job
+          group_interval: 5m
+          group_wait: 30s
+          receiver: telegram
+          repeat_interval: 12h
+          routes:
+        receivers:
+          - name: telegram
+            webhook_configs:
+            - send_resolved: True
+              url: http://alertmanager-telegram-forwarder:8080/v1/alerts/7055881
+      ingress:
+        enabled: true
+        ingressClassName: nginx-internal
+        annotations:
+          cert-manager.io/cluster-issuer: "internal"
+        hosts:
+         - alertmanager.k8s.grigri
+        paths:
+        - /
+        tls:
+        - secretName: alertmanager-general-tls
+          hosts:
+          - alertmanager.k8s.grigri
+
+      storage:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 100Mi
+
+    grafana:
+      enabled: true
+      admin:
+        existingSecret: grafana-admin
+        userKey: user
+        passwordKey: password
+      ingress:
+        enabled: true
+        ingressClassName: nginx-internal
+        annotations:
+          cert-manager.io/cluster-issuer: "internal"
+          #kubernetes.io/ingress.class: "nginx-internal"
+        hosts:
+         - grafana.k8s.grigri
+        paths:
+        - /
+        tls:
+        - secretName: grafana-general-tls
+          hosts:
+          - grafana.k8s.grigri
+      persistence:
+        enabled: true
+        size: 1Gi
+      plugins:
+        - grafana-piechart-panel
+
+    kubeControllerManager:
+      enabled: true
+      service:
+        targetPort: 10257
+        selector:
+          component: kube-controller-manager
+          tier: control-plane
+      serviceMonitor:
+        https: true
+        insecureSkipVerify: true
+
+    coreDns:
+      enabled: true
+      service:
+        selector:
+          k8s-app: kube-dns
+
+    kubeEtcd:
+      enabled: true
+      service:
+        selector:
+          tier: control-plane
+          component: etcd
+      serviceMonitor:
+        scheme: https
+        caFile:   /etc/prometheus/secrets/etcd-certs/ca.crt
+        certFile: /etc/prometheus/secrets/etcd-certs/client.crt
+        keyFile:  /etc/prometheus/secrets/etcd-certs/client.key
+
+    kubeScheduler:
+      enabled: true
+      service:
+        targetPort: 10257
+        selector:
+          tier: control-plane
+          component: kube-scheduler
+      serviceMonitor:
+        https: true
+        insecureSkipVerify: true
+
+    kubeProxy:
+      enabled: true
+      service:
+        selector:
+          k8s-app: kube-proxy
+
+    prometheusOperator:
+      # https://github.com/helm/charts/issues/19147
+      admissionWebhooks:
+        enabled: false
+      tls:
+        enabled: false
+
+      resources:
+        limits:
+          cpu: 200m
+          memory: 200Mi
+        requests:
+          cpu: 100m
+          memory: 100Mi
+
+    prometheus:
+      prometheusSpec:
+        replicas: 1
+        secrets:
+          - etcd-certs
+        # Make sure etcd-certs secret contains data like :
+        # kubectl create secret generic ssh-key-secret \
+        # --from-file=ca.crt=/etc/kubernetes/ssl/etcd/ca.crt \
+        # --from-file=client.crt=/etc/kubernetes/ssl/apiserver-etcd-client.crt \
+        # --from-file=client.key=/etc/kubernetes/ssl/apiserver-etcd-client.key
+      ingress:
+        enabled: true
+        ingressClassName: nginx-internal
+        annotations:
+          cert-manager.io/cluster-issuer: "internal"
+          #kubernetes.io/ingress.class: "nginx-internal"
+        hosts:
+         - prometheus.k8s.grigri
+        paths:
+        - /
+        tls:
+        - secretName: prometheus-general-tls
+          hosts:
+          - prometheus.k8s.grigri
+
+        retentionSize: 30GB
+        retention: 30d
+        resources:
+          requests:
+            cpu: 1
+            memory: 2Gi
+          limits:
+            cpu: 2
+            memory: 2Gi
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 35Gi
+
+        ruleSelector:
+          matchLabels:
+            role: alert-rules
+            prometheus: k8s
+
+        serviceMonitorSelector:
+          matchLabels:
+            prometheus: k8s
+
+    # smart disk data metrics
+    prometheus-node-exporter:
+      extraArgs:
+        - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
+        - --collector.filesystem.ignored-fs-types=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
+        # this is the new line
+        - --collector.textfile.directory=/host/root/var/log/prometheus
+
+    kube-state-metrics:
+      image:
+        repository: carlosedp/kube-state-metrics
+        tag: v1.9.6

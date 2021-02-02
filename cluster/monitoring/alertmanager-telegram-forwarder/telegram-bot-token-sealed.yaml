@@ -1,0 +1,15 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: telegram-bot
+  namespace: monitoring
+spec:
+  encryptedData:
+    token: AgAssAa671u/UiESgUkrM9xc/vzrsKnz1upd2X1eqtXle6OnZoEFrGC0FD1b4gDGj0diJ3OH1SEV7o9yCudeqzz2P3JIQff93Hyi6EaAaNjik/sFgDN44oZ6MXR9WotoVc0rRs+H8FBjASjRgwKYkX16C/jlRfZLyMX8SbWbBZ5ioveBlkZ46psPYUqxZ8cyktN9Q4NObdNkHSyNojhAfdiCWmsUx+LCHzFcDqZ+2ljm2Ku/73KO1YNKW9tzf2d6F01x60c6/BK7zCsnFoqVH+7k2zAgp743ITxHGrHdGF2XsTVhSAnYTX5hYLKQYhxFIVhPtx6gPT97QiBS9rd8s3lYi7GZrfgYjJhoHVRkE6hktV+GnHHwpg6VaDAXoOKmRSHqIGShs1sHWkuHRvCoGAkanawdsYgm4F3YG2kBVWrIuPBFaMxpBObY+LwdlNHZG14v98Qy/P0tJcJ/Cv6pYCnvzVEaamd/G/PaDNf1asEopBlUnTs4ndsaOoWDGI28dyetlSAv1mMMPXrlUZysXldwOmnVN20GEdhkiyzl+02nscx4saIxMX1D2Oyj4AejSh4w+/q+Pw5CpTDKKGIEZzpdtPfzQcR4IRCCSFShGOCpIGBoNWaT5eJOCM0flEPIzRANyDz8B94EAefWC2CDLFWw1y6PJ82D+o745GQ4xb2KZBquceoyl7lpV4H8/Wtc0nCTATVGIQzq1J2QLDG1+/Ikky6Akro8hCRGKKpvJnJXMuBN+AQjcfuM4THQ034=
+  template:
+    metadata:
+      creationTimestamp: null
+      name: telegram-bot
+      namespace: monitoring
+
