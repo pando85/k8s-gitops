@@ -1,0 +1,40 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    prometheus: rook-prometheus
+    role: alert-rules
+  name: rook-prometheus
+  namespace: rook-ceph
+spec:
+  endpoints:
+  - interval: 30s
+    port: web
+  selector:
+    matchLabels:
+      prometheus: rook-prometheus
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: csi-metrics
+  namespace: rook-ceph
+  labels:
+    release: monitoring
+spec:
+  namespaceSelector:
+    matchNames:
+      - rook-ceph
+  selector:
+    matchLabels:
+      app: csi-metrics
+  endpoints:
+    - port: csi-http-metrics
+      path: /metrics
+      interval: 5s
+    # comment csi-grpc-metrics realated information if csi grpc metrics is not enabled
+    - port: csi-grpc-metrics
+      path: /metrics
+      interval: 5s

@@ -1,0 +1,99 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    prometheus: rook-prometheus
+    role: alert-rules
+  name: prometheus-ceph-rules
+  namespace: rook-ceph
+spec:
+  groups:
+  - name: ceph.rules
+    rules:
+    - expr: |
+        kube_node_status_condition{condition="Ready",job="kube-state-metrics",status="true"} * on (node) group_right() max(label_replace(ceph_disk_occupation{job="rook-ceph-mgr"},"node","$1","exported_instance","(.*)")) by (node)
+      record: cluster:ceph_node_down:join_kube
+    - expr: |
+        avg(max by(instance) (label_replace(label_replace(ceph_disk_occupation{job="rook-ceph-mgr"}, "instance", "$1", "exported_instance", "(.*)"), "device", "$1", "device", "/dev/(.*)") * on(instance, device) group_right() (irate(node_disk_read_time_seconds_total[1m]) + irate(node_disk_write_time_seconds_total[1m]) / (clamp_min(irate(node_disk_reads_completed_total[1m]), 1) + irate(node_disk_writes_completed_total[1m])))))
+      record: cluster:ceph_disk_latency:join_ceph_node_disk_irate1m
+  - name: telemeter.rules
+    rules:
+    - expr: |
+        count(ceph_osd_metadata{job="rook-ceph-mgr"})
+      record: job:ceph_osd_metadata:count
+    - expr: |
+        count(kube_persistentvolume_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)"})
+      record: job:kube_pv:count
+    - expr: |
+        sum(ceph_pool_rd{job="rook-ceph-mgr"}+ ceph_pool_wr{job="rook-ceph-mgr"})
+      record: job:ceph_pools_iops:total
+    - expr: |
+        sum(ceph_pool_rd_bytes{job="rook-ceph-mgr"}+ ceph_pool_wr_bytes{job="rook-ceph-mgr"})
+      record: job:ceph_pools_iops_bytes:total
+    - expr: |
+        count(count(ceph_mon_metadata{job="rook-ceph-mgr"} or ceph_osd_metadata{job="rook-ceph-mgr"} or ceph_rgw_metadata{job="rook-ceph-mgr"} or ceph_mds_metadata{job="rook-ceph-mgr"} or ceph_mgr_metadata{job="rook-ceph-mgr"}) by(ceph_version))
+      record: job:ceph_versions_running:count
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app: kube-prometheus-stack
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-meta-monitoring
+  namespace: monitoring
+spec:
+  groups:
+  - name: prometheus-meta-monitoring
+    rules:
+    - alert: PrometheusK8sDown
+      annotations:
+        message: Prometheus K8s has disappeared from Prometheus K8s target discovery.
+      expr: |
+        absent(up{job="kube-prometheus-stack-prometheus",namespace="monitoring"} == 1)
+      for: 15m
+      labels:
+        severity: critical
+    - alert: PrometheusRookDown
+      annotations:
+        message: Prometheus Rook has disappeared from Prometheus K8s target discovery.
+      expr: |
+        absent(up{job="rook-prometheus",namespace="rook-ceph"} == 1)
+      for: 15m
+      labels:
+        severity: critical
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    prometheus: rook-prometheus
+    role: alert-rules
+  name: prometheus-rook-meta-monitoring
+  namespace: rook-ceph
+spec:
+  groups:
+  - name: prometheus-meta-monitoring
+    rules:
+    - alert: PrometheusK8sDown
+      annotations:
+        message: Prometheus K8s has disappeared from Prometheus Rook target discovery.
+        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-prometheusdown
+      expr: |
+        absent(up{job="prometheus-k8s",namespace="monitoring"} == 1)
+      for: 15m
+      labels:
+        severity: critical
+    - alert: PrometheusRookDown
+      annotations:
+        message: Prometheus Rook has disappeared from Prometheus Rook target discovery.
+        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-prometheusdown
+      expr: |
+        absent(up{job="rook-prometheus",namespace="rook-ceph"} == 1)
+      for: 15m
+      labels:
+        severity: critical
+

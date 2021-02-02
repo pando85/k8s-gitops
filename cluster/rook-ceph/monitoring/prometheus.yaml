@@ -1,0 +1,118 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  labels:
+    prometheus: rook-prometheus
+  name: rook-prometheus
+  namespace: rook-ceph
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/master
+            operator: DoesNotExist
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: prometheus
+              operator: In
+              values:
+              - rook-prometheus
+          namespaces:
+          - rook-ceph
+          topologyKey: kubernetes.io/hostname
+        weight: 100
+  alerting:
+    alertmanagers:
+    - apiVersion: v2
+      name: kube-prometheus-stack-alertmanager
+      namespace: monitoring
+      pathPrefix: /
+      port: web
+  baseImage: prom/prometheus
+  externalUrl: https://rook-prometheus.k8s.grigri
+  nodeSelector:
+    kubernetes.io/os: linux
+  podMonitorSelector: {}
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  retention: 7d
+  ruleSelector:
+    matchLabels:
+      role: alert-rules
+      prometheus: rook-prometheus
+  securityContext:
+    fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 1000
+  serviceAccountName: rook-prometheus
+  serviceMonitorNamespaceSelector: {}
+  serviceMonitorSelector:
+    matchLabels:
+      team: rook
+  version: v2.13.1
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: grigri-dataset
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    prometheus: rook-prometheus
+  name: rook-prometheus
+  namespace: rook-ceph
+spec:
+  ports:
+  - name: web
+    port: 9090
+    targetPort: web
+  selector:
+    app: prometheus
+    prometheus: rook-prometheus
+  sessionAffinity: ClientIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rook-prometheus
+  namespace: rook-ceph
+  annotations:
+    cert-manager.io/cluster-issuer: internal
+spec:
+  ingressClassName: nginx-internal
+  tls:
+  - hosts:
+    - rook-prometheus.k8s.grigri
+    secretName: rook-prometheus-tls
+  rules:
+  - host: rook-prometheus.k8s.grigri
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rook-prometheus
+            port:
+              name: web
+
