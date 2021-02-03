@@ -197,21 +197,6 @@ spec:
         # --from-file=ca.crt=/etc/kubernetes/ssl/etcd/ca.crt \
         # --from-file=client.crt=/etc/kubernetes/ssl/apiserver-etcd-client.crt \
         # --from-file=client.key=/etc/kubernetes/ssl/apiserver-etcd-client.key
-      ingress:
-        enabled: true
-        ingressClassName: nginx-internal
-        annotations:
-          cert-manager.io/cluster-issuer: "internal"
-          #kubernetes.io/ingress.class: "nginx-internal"
-        hosts:
-         - prometheus.k8s.grigri
-        paths:
-        - /
-        tls:
-        - secretName: prometheus-general-tls
-          hosts:
-          - prometheus.k8s.grigri
-
         retentionSize: 30GB
         retention: 30d
         resources:
@@ -228,15 +213,27 @@ spec:
               resources:
                 requests:
                   storage: 35Gi
-
         ruleSelector:
           matchLabels:
             app: kube-prometheus-stack
             release: kube-prometheus-stack
-
         serviceMonitorSelector:
           matchLabels:
             release: kube-prometheus-stack
+      ingress:
+        enabled: true
+        ingressClassName: nginx-internal
+        annotations:
+          cert-manager.io/cluster-issuer: "internal"
+          #kubernetes.io/ingress.class: "nginx-internal"
+        hosts:
+         - prometheus.k8s.grigri
+        paths:
+        - /
+        tls:
+        - secretName: prometheus-general-tls
+          hosts:
+          - prometheus.k8s.grigri
 
     # smart disk data metrics
     prometheus-node-exporter:
