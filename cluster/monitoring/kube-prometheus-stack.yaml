@@ -28,11 +28,19 @@ spec:
           receiver: telegram
           repeat_interval: 12h
           routes:
+          - receiver: 'null'
+            match:
+              alertname: Watchdog
+          - receiver: 'null'
+            match:
+              severity: info
         receivers:
           - name: telegram
             webhook_configs:
             - send_resolved: True
               url: http://alertmanager-telegram-forwarder:8080/v1/alerts/7055881
+          - name: 'null'
+
       ingress:
         enabled: true
         ingressClassName: nginx-internal
