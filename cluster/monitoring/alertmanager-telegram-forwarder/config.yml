@@ -17,7 +17,11 @@ data:
     {{ emojis[alert.labels.severity] }}
     {%- endif -%}
      *{{ alert.labels.alertname }}*
+    {% if alert.annotations.message -%}
     _{{ alert.annotations.message }}_
+    {% else -%}
+    _{{ alert.annotations.description }}_
+    {% endif -%}
     [Prometheus]({{ alert.generatorURL }})
     {% if 'runbook_url' in alert.annotations -%}
     [Runbook URL]({{ alert.annotations.runbook_url }})
