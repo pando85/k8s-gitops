@@ -59,13 +59,14 @@ spec:
           hosts:
           - alertmanager.k8s.grigri
 
-      storage:
-        volumeClaimTemplate:
-          spec:
-            accessModes: ["ReadWriteOnce"]
-            resources:
-              requests:
-                storage: 100Mi
+      alertmanagerSpec:
+        storage:
+          volumeClaimTemplate:
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 100Mi
 
     grafana:
       enabled: true
