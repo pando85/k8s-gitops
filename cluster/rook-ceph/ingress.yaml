@@ -1,0 +1,32 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rook-ceph-mgr-dashboard
+  namespace: rook-ceph
+  labels:
+    app: rook-ceph-mgr
+  annotations:
+    cert-manager.io/cluster-issuer: "internal"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_cache static-cache;
+    prometheus.io/probe: "true"
+spec:
+  ingressClassName: nginx-internal
+  rules:
+  - host: ceph-dashboard.k8s.grigri
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rook-ceph-mgr-dashboard
+            port:
+              number: 7000
+  tls:
+    - hosts:
+      - ceph-dashboard.k8s.grigri
+      secretName: ceph-dashboard-tls
