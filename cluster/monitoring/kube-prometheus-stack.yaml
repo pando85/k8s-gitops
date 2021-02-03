@@ -119,6 +119,13 @@ spec:
           tier: control-plane
           component: etcd
       serviceMonitor:
+        relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          separator: ;
+          regex: ^(.*)$
+          targetLabel: instance
+          replacement: $1
+          action: replace
         scheme: https
         caFile:   /etc/prometheus/secrets/etcd-certs/ca.crt
         certFile: /etc/prometheus/secrets/etcd-certs/client.crt
@@ -140,6 +147,25 @@ spec:
       service:
         selector:
           k8s-app: kube-proxy
+      serviceMonitor:
+        relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          separator: ;
+          regex: ^(.*)$
+          targetLabel: instance
+          replacement: $1
+          action: replace
+
+    nodeExporter:
+      enabled: true
+      serviceMonitor:
+        relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          separator: ;
+          regex: ^(.*)$
+          targetLabel: instance
+          replacement: $1
+          action: replace
 
     prometheusOperator:
       # https://github.com/helm/charts/issues/19147
