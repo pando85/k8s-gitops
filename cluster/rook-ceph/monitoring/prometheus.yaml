@@ -61,7 +61,6 @@ spec:
   serviceMonitorSelector:
     matchLabels:
       team: rook
-  version: v2.13.1
   storage:
     volumeClaimTemplate:
       spec:
