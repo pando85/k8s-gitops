@@ -4,6 +4,8 @@ kind: ServiceMonitor
 metadata:
   labels:
     team: rook
+    release: kube-prometheus-stack
+    app: kube-prometheus-stack-prometheus
   name: rook-prometheus
   namespace: rook-ceph
 spec:
