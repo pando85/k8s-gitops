@@ -16,6 +16,10 @@ spec:
   releaseName: kube-prometheus-stack
   targetNamespace: monitoring
   values:
+    defaultRules:
+      rules:
+        etcd: false
+
     alertmanager:
       config:
         global:
