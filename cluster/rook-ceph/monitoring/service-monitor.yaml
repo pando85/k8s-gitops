@@ -39,3 +39,22 @@ spec:
     - port: csi-grpc-metrics
       path: /metrics
       interval: 5s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    team: rook
+  name: rook-prometheus-monitor-prometheus
+  namespace: monitoring
+spec:
+  endpoints:
+  - path: /metrics
+    port: web
+  namespaceSelector:
+    matchNames:
+    - monitoring
+  selector:
+    matchLabels:
+      app: kube-prometheus-stack-prometheus
+      release: kube-prometheus-stack
