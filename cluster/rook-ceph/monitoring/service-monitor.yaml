@@ -3,8 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    prometheus: rook-prometheus
-    role: alert-rules
+    team: rook
   name: rook-prometheus
   namespace: rook-ceph
 spec:
@@ -22,7 +21,7 @@ metadata:
   name: csi-metrics
   namespace: rook-ceph
   labels:
-    release: monitoring
+    team: rook
 spec:
   namespaceSelector:
     matchNames:
